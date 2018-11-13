@@ -15,4 +15,8 @@ RUN make setup
 COPY . /opt/insurello
 RUN make build
 
+# Entrypoint
+RUN ["chmod", "+x", "./docker-entrypoint.sh"]
+ENTRYPOINT ["sh", "./docker-entrypoint.sh"]
+
 CMD ["npm", "run", "start-js"]
