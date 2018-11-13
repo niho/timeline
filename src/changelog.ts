@@ -1,4 +1,4 @@
-import * as Promise from "bluebird";
+import * as Bluebird from "bluebird";
 import * as t from "io-ts";
 import * as _ from "lodash";
 import { Commit, createCommit } from "./commit";
@@ -33,8 +33,8 @@ export type Validation = (
 ) => PromiseLike<any>;
 
 export interface Datastore {
-  fetch: (timeline: TimelineId) => Promise<Commit[]>;
-  insert: (timeline: TimelineId, commits: Commit[]) => Promise<Commit[]>;
+  fetch: (timeline: TimelineId) => PromiseLike<Commit[]>;
+  insert: (timeline: TimelineId, commits: Commit[]) => PromiseLike<Commit[]>;
 }
 
 export const defaultStore = function($db: Database): Datastore {
@@ -47,7 +47,7 @@ export const defaultStore = function($db: Database): Datastore {
         .orderBy("timestamp", "asc")
         .then(_commits => _commits),
 
-    insert: (_id: TimelineId, _commits: Commit[]): Promise<Commit[]> => {
+    insert: (_id: TimelineId, _commits: Commit[]) => {
       if (_.isEmpty(_commits)) {
         return Promise.resolve([]);
       }
@@ -127,35 +127,32 @@ class Timeline {
     return this;
   }
 
-  public commit(
+  public async commit(
     author: null | string,
     events: Event[] | Event
   ): Promise<Commit[]> {
     const $events = events instanceof Array ? events : [events];
-    return this.fetch().then(history => {
-      return Promise.reduce($events, this.validation.bind(this), history)
-        .then(() => {
-          return this.db.insert(
-            this.id,
-            commits(this.id, $events, history, author)
-          );
-        })
-        .then($commits => history.concat($commits));
-    });
+    return this.fetch().then(history =>
+      Bluebird.reduce($events, this.validation.bind(this), history)
+        .then(() =>
+          this.db.insert(this.id, commits(this.id, $events, history, author))
+        )
+        .then($commits => history.concat($commits))
+    );
   }
 
-  public latest(_event: string): Promise<Payload | undefined> {
+  public async latest(_event: string): Promise<Payload | undefined> {
     return this.fetch(_event).then((_commits: Commit[]) => {
       const commit = _.last(_commits);
       return commit ? commit.payload : undefined;
     });
   }
 
-  public all(_event: string): Promise<Payload[]> {
+  public async all(_event: string): Promise<Payload[]> {
     return this.fetch(_event).then(_commits => _.map(_commits, c => c.payload));
   }
 
-  public fetch(_event?: string): Promise<Commit[]> {
+  public async fetch(_event?: string): Promise<Commit[]> {
     if (_event) {
       return this.db
         .fetch(this.id)
@@ -166,12 +163,12 @@ class Timeline {
     }
   }
 
-  private validation(
+  private async validation(
     history: Array<Commit | Event>,
     e: Event
   ): Promise<Array<Commit | Event>> {
     const params = [e.event, e.payload, history, e.thread];
-    return Promise.map(this.validations, f => _.spread(f)(params)).then(() =>
+    return Bluebird.map(this.validations, f => _.spread(f)(params)).then(() =>
       _.concat(history, e)
     );
   }
