@@ -8,11 +8,6 @@ exports.up = function(knex, Promise) {
     t.json("payload");
     t.primary("id");
     t.unique("parent");
-    t.foreign("timeline")
-      .references("id")
-      .inTable("api.insurance_cases")
-      .onDelete("CASCADE")
-      .onUpdate("CASCADE");
     t.index(["timeline", "timestamp"]);
     t.index(["timeline", "event"]);
   });
