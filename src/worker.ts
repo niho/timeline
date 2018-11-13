@@ -1,3 +1,4 @@
+import { PathReporter } from "io-ts/lib/PathReporter";
 import * as rabbot from "rabbot";
 import { logger } from "./logger";
 
@@ -5,6 +6,8 @@ import * as changelog from "./changelog";
 import { defaultStore } from "./datastore";
 import { db } from "./db";
 import * as topic from "./topic";
+
+const datastore = defaultStore(db);
 
 rabbot.rejectUnhandled();
 rabbot.nackOnError();
@@ -19,26 +22,38 @@ rabbot.on("unreachable", () => {
 });
 
 rabbot.handle("changelog.commit", async (req: any) => {
-  const datastore = defaultStore(db);
-  const timeline = parseInt(req.properties.headers["x-timeline"], 10);
-  const author = req.properties.headers["x-author"];
-  const events = req.body;
-  const commits = await changelog
-    .timeline(timeline, datastore)
-    .commit(author, events);
-  await topic.publish(commits);
-  if (req.properties.replyTo) {
-    req.reply(commits, { contentType: "application/json" });
-  } else {
-    req.ack();
+  try {
+    const timeline = parseInt(req.properties.headers["x-timeline"], 10);
+    const author = req.properties.headers["x-author"];
+    const events = changelog.event.decode(req.body);
+    if (events.isLeft()) {
+      throw new Error(PathReporter.report(events).join("\n"));
+    } else {
+      const commits = await changelog
+        .timeline(timeline, datastore)
+        .commit(author, events.value);
+      await topic.publish(commits);
+      if (req.properties.replyTo) {
+        req.reply(commits, { contentType: "application/json" });
+      } else {
+        req.ack();
+      }
+    }
+  } catch (err) {
+    logger.error(err.stack ? err.stack : err.message);
+    req.nack();
   }
 });
 
 rabbot.handle("changelog.fetch", async (req: any) => {
-  const datastore = defaultStore(db);
-  const timeline = req.properties.headers["x-timeline"];
-  const commits = await changelog.timeline(timeline, datastore).fetch();
-  req.reply(commits, { contentType: "application/json" });
+  try {
+    const timeline = req.properties.headers["x-timeline"];
+    const commits = await changelog.timeline(timeline, datastore).fetch();
+    req.reply(commits, { contentType: "application/json" });
+  } catch (err) {
+    logger.error(err.stack ? err.stack : err.message);
+    req.nack();
+  }
 });
 
 rabbot
