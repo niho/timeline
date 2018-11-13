@@ -1,7 +1,7 @@
 {
   "name": "changelog",
   "version": "1.0.0",
-  "description": "Event sourced data store with auditing.",
+  "description": "Event sourced data store designed for auditing.",
   "scripts": {
     "start": "./node_modules/.bin/ts-node src/worker.ts",
     "start-js": "node dist/src/worker.js",
