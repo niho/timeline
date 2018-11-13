@@ -2,7 +2,6 @@ import * as Bluebird from "bluebird";
 import * as t from "io-ts";
 import * as _ from "lodash";
 import { Commit, createCommit } from "./commit";
-import { Database, db } from "./db";
 import * as merkle from "./merkle";
 
 export type TimelineId = number;
@@ -37,32 +36,8 @@ export interface Datastore {
   insert: (timeline: TimelineId, commits: Commit[]) => PromiseLike<Commit[]>;
 }
 
-export const defaultStore = function($db: Database): Datastore {
-  return {
-    fetch: (id: TimelineId) =>
-      $db
-        .select()
-        .from("commits")
-        .where("timeline", id)
-        .orderBy("timestamp", "asc")
-        .then(_commits => _commits),
-
-    insert: (_id: TimelineId, _commits: Commit[]) => {
-      if (_.isEmpty(_commits)) {
-        return Promise.resolve([]);
-      }
-      return $db.transaction(trx => {
-        return trx
-          .insert(_commits)
-          .into("commits")
-          .return(_commits);
-      });
-    }
-  };
-};
-
-export function timeline(id: TimelineId, _fn?: Datastore): Timeline {
-  return new Timeline(id, _fn);
+export function timeline(id: TimelineId, db: Datastore): Timeline {
+  return new Timeline(id, db);
 }
 
 export const commits = (
@@ -116,9 +91,9 @@ class Timeline {
   private readonly db: Datastore;
   private readonly validations: Validation[];
 
-  constructor(id: TimelineId, _db?: Datastore) {
+  constructor(id: TimelineId, db: Datastore) {
     this.id = id;
-    this.db = _db ? _.defaults(_db, defaultStore(db)) : defaultStore(db);
+    this.db = db;
     this.validations = [];
   }
 

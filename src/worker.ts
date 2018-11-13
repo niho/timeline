@@ -2,6 +2,7 @@ import * as rabbot from "rabbot";
 import { logger } from "./logger";
 
 import * as changelog from "./changelog";
+import { defaultStore } from "./datastore";
 import { db } from "./db";
 import * as topic from "./topic";
 
@@ -18,7 +19,7 @@ rabbot.on("unreachable", () => {
 });
 
 rabbot.handle("changelog.commit", async (req: any) => {
-  const datastore = changelog.defaultStore(db);
+  const datastore = defaultStore(db);
   const timeline = parseInt(req.properties.headers["x-timeline"], 10);
   const author = req.properties.headers["x-author"];
   const events = req.body;
@@ -34,7 +35,7 @@ rabbot.handle("changelog.commit", async (req: any) => {
 });
 
 rabbot.handle("changelog.fetch", async (req: any) => {
-  const datastore = changelog.defaultStore(db);
+  const datastore = defaultStore(db);
   const timeline = req.properties.headers["x-timeline"];
   const commits = await changelog.timeline(timeline, datastore).fetch();
   req.reply(commits, { contentType: "application/json" });
