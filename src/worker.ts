@@ -2,9 +2,10 @@ import { PathReporter } from "io-ts/lib/PathReporter";
 import * as rabbot from "rabbot";
 import { logger } from "./logger";
 
-import * as changelog from "./changelog";
 import { defaultStore } from "./datastore";
 import { db } from "./db";
+import * as event from "./event";
+import { timeline } from "./timeline";
 import * as topic from "./topic";
 
 const datastore = defaultStore(db);
@@ -23,15 +24,14 @@ rabbot.on("unreachable", () => {
 
 rabbot.handle("changelog.commit", async (req: any) => {
   try {
-    const timeline = parseInt(req.properties.headers["x-timeline"], 10);
+    const id = parseInt(req.properties.headers["x-timeline"], 10);
     const author = req.properties.headers["x-author"];
-    const events = changelog.event.decode(req.body);
+    const events = event.events.decode(req.body);
     if (events.isLeft()) {
       throw new Error(PathReporter.report(events).join("\n"));
     } else {
-      const commits = await changelog
-        .timeline(timeline, datastore)
-        .commit(author, events.value);
+      const _events = events.value;
+      const commits = await timeline(id, datastore).commit(author, _events);
       await topic.publish(commits);
       if (req.properties.replyTo) {
         req.reply(commits, { contentType: "application/json" });
@@ -47,8 +47,8 @@ rabbot.handle("changelog.commit", async (req: any) => {
 
 rabbot.handle("changelog.fetch", async (req: any) => {
   try {
-    const timeline = req.properties.headers["x-timeline"];
-    const commits = await changelog.timeline(timeline, datastore).fetch();
+    const id = req.properties.headers["x-timeline"];
+    const commits = await timeline(id, datastore).fetch();
     req.reply(commits, { contentType: "application/json" });
   } catch (err) {
     logger.error(err.stack ? err.stack : err.message);

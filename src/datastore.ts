@@ -1,5 +1,5 @@
-import { Datastore } from "./changelog";
 import { Database } from "./db";
+import { Datastore } from "./timeline";
 
 export const defaultStore = function($db: Database): Datastore {
   return {
