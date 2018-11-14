@@ -3,9 +3,11 @@
 import * as Promise from "bluebird";
 import * as chai from "chai";
 import * as chaiAsPromised from "chai-as-promised";
+import * as sinon from "sinon";
 import * as changelog from "../src/changelog";
 import { Event } from "../src/event";
 import { timeline } from "../src/timeline";
+import * as topic from "../src/topic";
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -18,6 +20,14 @@ const event = (name: string, payload: any, thread: string | null = null) => ({
 
 describe("Timeline", () => {
   describe("commit()", () => {
+    beforeEach(() => {
+      sinon.stub(topic, "publish").resolves();
+    });
+
+    afterEach(() => {
+      (topic.publish as sinon.SinonStub).restore();
+    });
+
     it("should commit events to the changelog", () => {
       return timeline(1, {
         fetch: () => Promise.resolve([]),
@@ -198,6 +208,30 @@ describe("Timeline", () => {
           .commit(null, { event: "rejected" } as Event)
           .should.be.rejectedWith(Error);
       });
+    });
+
+    describe("topic", () => {
+      it("should publish commits to topic", () =>
+        timeline(1, {
+          fetch: () =>
+            Promise.resolve(
+              changelog.commits(1, [event("claim", {})], [], null)
+            ),
+          insert: (_id, commits) => Promise.resolve(commits)
+        })
+          .commit(null, [
+            event("rejected", { reason: "..." }),
+            event("rejected", { reason: "..." }),
+            event("closed", null)
+          ])
+          .then(() => {
+            const stub = topic.publish as sinon.SinonStub;
+            stub.calledOnce.should.equal(true);
+            stub.firstCall.args[0].should.be.a("array");
+            stub.firstCall.args[0].length.should.equal(2);
+            stub.firstCall.args[0][0].event.should.equal("rejected");
+            stub.firstCall.args[0][1].event.should.equal("closed");
+          }));
     });
   });
 

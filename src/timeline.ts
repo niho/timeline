@@ -4,6 +4,7 @@ import { commits, fetch } from "./changelog";
 import { Commit } from "./commit";
 import { Event } from "./event";
 import { Payload } from "./payload";
+import * as topic from "./topic";
 
 export type TimelineId = number;
 
@@ -43,13 +44,14 @@ class Timeline {
     author: null | string,
     events: Event[] | Event
   ): Promise<Commit[]> {
-    const $events = events instanceof Array ? events : [events];
+    const _events = events instanceof Array ? events : [events];
     return this.fetch().then(history =>
-      Bluebird.reduce($events, this.validation.bind(this), history)
+      Bluebird.reduce(_events, this.validation.bind(this), history)
         .then(() =>
-          this.db.insert(this.id, commits(this.id, $events, history, author))
+          this.db.insert(this.id, commits(this.id, _events, history, author))
         )
-        .then($commits => history.concat($commits))
+        .tap(_commits => topic.publish(_commits))
+        .then(_commits => history.concat(_commits))
     );
   }
 

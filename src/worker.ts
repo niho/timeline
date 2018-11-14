@@ -6,7 +6,6 @@ import { defaultStore } from "./datastore";
 import { db } from "./db";
 import * as event from "./event";
 import { timeline } from "./timeline";
-import * as topic from "./topic";
 
 const datastore = defaultStore(db);
 
@@ -32,7 +31,6 @@ rabbot.handle("changelog.commit", async (req: any) => {
     } else {
       const _events = events.value;
       const commits = await timeline(id, datastore).commit(author, _events);
-      await topic.publish(commits);
       if (req.properties.replyTo) {
         req.reply(commits, { contentType: "application/json" });
       } else {
