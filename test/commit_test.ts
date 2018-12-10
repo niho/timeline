@@ -77,6 +77,48 @@ describe("Commit", () => {
       }, Error);
     });
 
+    it("should not allow a commit without a parent", () => {
+      chai.should().throw(() => {
+        commit.createCommit(
+          123,
+          "closed",
+          date,
+          undefined,
+          undefined as any,
+          null,
+          null
+        );
+      }, Error);
+    });
+
+    it("should not allow a commit without a thread", () => {
+      chai.should().throw(() => {
+        commit.createCommit(
+          123,
+          "closed",
+          date,
+          undefined,
+          null,
+          undefined as any,
+          null
+        );
+      }, Error);
+    });
+
+    it("should not allow a commit without a author", () => {
+      chai.should().throw(() => {
+        commit.createCommit(
+          123,
+          "closed",
+          date,
+          undefined,
+          null,
+          null,
+          undefined as any
+        );
+      }, Error);
+    });
+
     it("should store the timestamp in UTC timezone", () => {
       const date1 = new Date("Feb 28 2013 19:00:00 EST");
       const date2 = new Date("Feb 28 2013 19:00:00 GMT-0500");
