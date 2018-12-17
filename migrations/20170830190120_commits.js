@@ -1,7 +1,7 @@
 exports.up = function(knex, Promise) {
   return knex.schema.createTable("commits", (t) => {
     t.string("id").notNullable();
-    t.string("parent");
+    t.string("parent").references("id");
     t.integer("timeline").notNullable();
     t.string("event").notNullable();
     t.timestamp("timestamp").notNullable();
