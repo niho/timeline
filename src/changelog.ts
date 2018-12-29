@@ -4,7 +4,7 @@ import { Event } from "./event";
 import * as merkle from "./merkle";
 
 export const commits = (
-  timeline: number,
+  timeline: string,
   events: Event[],
   history: Commit[],
   author: string | null

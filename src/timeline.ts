@@ -6,7 +6,7 @@ import { Event } from "./event";
 import { Payload } from "./payload";
 import * as topic from "./topic";
 
-export type TimelineId = number;
+export type TimelineId = string;
 
 export function timeline(id: TimelineId, db: Datastore): Timeline {
   return new Timeline(id, db);

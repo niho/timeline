@@ -23,7 +23,7 @@ rabbot.on("unreachable", () => {
 
 rabbot.handle("changelog.commit", async (req: any) => {
   try {
-    const id = parseInt(req.properties.headers["x-timeline"], 10);
+    const id = req.properties.headers["x-timeline"];
     const author = req.properties.headers["x-author"];
     const events = event.events.decode(req.body);
     if (events.isLeft()) {

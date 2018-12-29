@@ -29,7 +29,7 @@ describe("Timeline", () => {
     });
 
     it("should commit events to the changelog", () => {
-      return timeline(1, {
+      return timeline("1", {
         fetch: () => Promise.resolve([]),
         insert: (_id, commits) => {
           commits.length.should.equal(2);
@@ -45,7 +45,7 @@ describe("Timeline", () => {
     });
 
     it("should squash any sequence of identical events", () => {
-      return timeline(1, {
+      return timeline("1", {
         fetch: () => Promise.resolve([]),
         insert: (_id, commits) => {
           commits.length.should.equal(3);
@@ -60,11 +60,11 @@ describe("Timeline", () => {
     });
 
     it("should not commit event if it is identical with HEAD", () => {
-      return timeline(1, {
+      return timeline("1", {
         fetch: () =>
           Promise.resolve(
             changelog.commits(
-              1,
+              "1",
               [event("rejected", { reason: "..." })],
               [],
               null
@@ -79,12 +79,12 @@ describe("Timeline", () => {
 
     it("should return the full history including the new commits", done => {
       const datastore = changelog.commits(
-        1,
+        "1",
         [event("question", null)],
         [],
         null
       );
-      timeline(1, {
+      timeline("1", {
         fetch: () => Promise.resolve(datastore),
         insert: (_id, commits) => {
           datastore.concat(commits);
@@ -104,28 +104,29 @@ describe("Timeline", () => {
 
     describe("transactions", () => {
       it("should give identical timestamps to commits in transaction", () => {
-        return timeline(1, {
+        return timeline("1", {
           fetch: () => Promise.resolve([]),
           insert: (_id, commits) => {
-            commits[0].timestamp
-              .getTime()
-              .should.be.approximately(commits[1].timestamp.getTime(), 10);
+            commits[0].timestamp.should.be.approximately(
+              commits[1].timestamp,
+              10
+            );
             return Promise.resolve(commits);
           }
         }).commit(null, [event("answer", {}), event("closed", null)]);
       });
 
       it("should preserve the logical order of commits in transaction", () =>
-        timeline(1, {
+        timeline("1", {
           fetch: () =>
             Promise.resolve([
               {
                 id: "xyz2",
                 parent: "xyz1",
                 thread: null,
-                timeline: 1,
+                timeline: "1",
                 event: "closed",
-                timestamp: new Date("2018-10-10"),
+                timestamp: new Date("2018-10-10").getTime(),
                 payload: null,
                 author: null
               },
@@ -133,9 +134,9 @@ describe("Timeline", () => {
                 id: "xyz1",
                 parent: null,
                 thread: null,
-                timeline: 1,
+                timeline: "1",
                 event: "answer",
-                timestamp: new Date("2018-10-10"),
+                timestamp: new Date("2018-10-10").getTime(),
                 payload: null,
                 author: null
               }
@@ -151,7 +152,7 @@ describe("Timeline", () => {
           }));
 
       it("should chain commits in a transaction", () => {
-        return timeline(1, {
+        return timeline("1", {
           fetch: () => Promise.resolve([]),
           insert: (_id, commits) => {
             commits.length.should.equal(3);
@@ -170,7 +171,7 @@ describe("Timeline", () => {
 
     describe("threads", () => {
       it("should commit event with thread", () => {
-        return timeline(1, {
+        return timeline("1", {
           fetch: () => Promise.resolve([]),
           insert: (_id, commits) => {
             commits.length.should.equal(1);
@@ -183,7 +184,7 @@ describe("Timeline", () => {
 
     describe("mallformed events", () => {
       it("should not commit event if it is not wellformed", () => {
-        return timeline(1, {
+        return timeline("1", {
           fetch: () => Promise.resolve([]),
           insert: () => Promise.resolve([])
         })
@@ -192,7 +193,7 @@ describe("Timeline", () => {
       });
 
       it("should not commit event if it is missing event name", () => {
-        return timeline(1, {
+        return timeline("1", {
           fetch: () => Promise.resolve([]),
           insert: () => Promise.resolve([])
         })
@@ -201,7 +202,7 @@ describe("Timeline", () => {
       });
 
       it("should not commit event if it is missing payload", () => {
-        return timeline(1, {
+        return timeline("1", {
           fetch: () => Promise.resolve([]),
           insert: () => Promise.resolve([])
         })
@@ -212,10 +213,10 @@ describe("Timeline", () => {
 
     describe("topic", () => {
       it("should publish commits to topic", () =>
-        timeline(1, {
+        timeline("1", {
           fetch: () =>
             Promise.resolve(
-              changelog.commits(1, [event("claim", {})], [], null)
+              changelog.commits("1", [event("claim", {})], [], null)
             ),
           insert: (_id, commits) => Promise.resolve(commits)
         })
@@ -237,7 +238,7 @@ describe("Timeline", () => {
 
   describe("validate()", () => {
     it("should validate events before they are comitted", () => {
-      return timeline(1, {
+      return timeline("1", {
         fetch: () => Promise.resolve([]),
         insert: () => Promise.resolve([])
       })
@@ -249,7 +250,7 @@ describe("Timeline", () => {
     });
 
     it("should *not* reject events if validation resolves with false", () => {
-      return timeline(1, {
+      return timeline("1", {
         fetch: () => Promise.resolve([]),
         insert: () => Promise.resolve([])
       })
@@ -261,7 +262,7 @@ describe("Timeline", () => {
     });
 
     it("should reject events if validation is rejected with error", () => {
-      return timeline(1, {
+      return timeline("1", {
         fetch: () => Promise.resolve([]),
         insert: () => Promise.resolve([])
       })
@@ -276,7 +277,7 @@ describe("Timeline", () => {
     });
 
     it("should propagate errors thrown during validation", () => {
-      return timeline(1, {
+      return timeline("1", {
         fetch: () => Promise.resolve([]),
         insert: () => Promise.resolve([])
       })
@@ -291,7 +292,7 @@ describe("Timeline", () => {
     });
 
     it("should validate all events individually", () => {
-      return timeline(1, {
+      return timeline("1", {
         fetch: () => Promise.resolve([]),
         insert: () => Promise.resolve([])
       })
@@ -310,7 +311,7 @@ describe("Timeline", () => {
     });
 
     it("should be able to validate asynchronously", () => {
-      return timeline(1, {
+      return timeline("1", {
         fetch: () => Promise.resolve([]),
         insert: () => Promise.resolve([])
       })
@@ -327,11 +328,11 @@ describe("Timeline", () => {
     });
 
     it("should pass the event history to the validator", () => {
-      return timeline(1, {
+      return timeline("1", {
         fetch: () =>
           Promise.resolve(
             changelog.commits(
-              1,
+              "1",
               [event("rejected", { reason: "..." }), event("closed", {})],
               [],
               null
@@ -359,11 +360,11 @@ describe("Timeline", () => {
   });
 
   describe("Query", () => {
-    const _timeline = timeline(1, {
+    const _timeline = timeline("1", {
       fetch: () =>
         Promise.resolve(
           changelog.commits(
-            1,
+            "1",
             [
               event("rejected", { reason: "one" }),
               event("rejected", { reason: "two" }),

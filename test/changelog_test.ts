@@ -17,10 +17,10 @@ describe("Changelog", () => {
   describe("commits()", () => {
     it("should create a sorted merkle chain of commits", () => {
       const history = [
-        createCommit(1, "question", new Date(), {}, null, null, null)
+        createCommit("1", "question", new Date(), {}, null, null, null)
       ];
       const commits = changelog.commits(
-        1,
+        "1",
         [
           event("rejected", { reason: "one" }),
           event("rejected", { reason: "two" }),
@@ -38,7 +38,7 @@ describe("Changelog", () => {
     describe("squashing", () => {
       it("should squash any sequence of identical events", () => {
         const commits = changelog.commits(
-          1,
+          "1",
           [
             event("rejected", { reason: "one" }),
             event("rejected", { reason: "two" }),
@@ -53,7 +53,7 @@ describe("Changelog", () => {
 
       it("should not squash identical events that are not in sequence", () => {
         const commits = changelog.commits(
-          1,
+          "1",
           [
             event("rejected", { reason: "one" }),
             event("rejected", { reason: "two" }),
@@ -68,14 +68,14 @@ describe("Changelog", () => {
 
       it("should squash with history", () => {
         const commits = changelog.commits(
-          1,
+          "1",
           [
             event("rejected", { reason: "one" }),
             event("rejected", { reason: "two" })
           ],
           [
             createCommit(
-              1,
+              "1",
               "rejected",
               new Date(),
               { reason: "one" },
@@ -92,14 +92,14 @@ describe("Changelog", () => {
 
       it("should squash with history if thread is the same", () => {
         const commits = changelog.commits(
-          1,
+          "1",
           [
             event("rejected", { reason: "one" }, "thread-1"),
             event("rejected", { reason: "one" }, "thread-2")
           ],
           [
             createCommit(
-              1,
+              "1",
               "rejected",
               new Date(),
               { reason: "one" },

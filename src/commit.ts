@@ -2,14 +2,14 @@ import * as crypto from "crypto";
 import * as stringify from "json-stable-stringify";
 
 export interface Commit {
+  timeline: string;
   id: string;
   parent: string | null;
   thread: string | null;
-  timeline: number;
-  event: string;
-  timestamp: Date;
-  payload: any;
   author: null | string;
+  event: string;
+  timestamp: number;
+  payload: any;
 }
 
 const generateHash = (input: any) => {
@@ -20,7 +20,7 @@ const generateHash = (input: any) => {
 };
 
 export const createCommit = (
-  timeline: number,
+  timeline: string,
   event: string,
   timestamp: Date,
   payload: any,
@@ -28,14 +28,14 @@ export const createCommit = (
   thread: string | null,
   author: string | null
 ): Commit => {
-  if (typeof timeline !== "number" || timeline <= 0) {
-    throw new TypeError("Argument timeline expected to be a number.");
+  if (typeof timeline !== "string" || timeline === "") {
+    throw new TypeError("Argument timeline expected to be a string.");
   }
   if (typeof event !== "string" || event === "") {
     throw new TypeError("Argument event expected to be a string.");
   }
   if (timestamp instanceof Date === false) {
-    throw new TypeError("Argument createdAt expected to be a Date.");
+    throw new TypeError("Argument timestamp expected to be a Date.");
   }
   if (payload === undefined) {
     throw new TypeError("Argument payload expected not to be undefined.");
@@ -54,7 +54,7 @@ export const createCommit = (
       parent,
       timeline,
       event,
-      timestamp,
+      timestamp: timestamp.getTime(),
       payload,
       thread,
       author
@@ -63,7 +63,7 @@ export const createCommit = (
     thread,
     timeline,
     event,
-    timestamp,
+    timestamp: timestamp.getTime(),
     payload,
     author
   };
