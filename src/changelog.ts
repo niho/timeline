@@ -1,17 +1,17 @@
 import * as _ from "lodash";
 import { Commit, createCommit } from "./commit";
-import { Event } from "./event";
+import { Event, events } from "./event";
 import * as merkle from "./merkle";
 
 export const commits = (
   timeline: string,
-  events: Event[],
+  data: Event[] | unknown,
   history: Commit[],
   author: string | null
 ): Commit[] => {
   const head = _.last(history);
-  const $events = squash(events, head);
-  return merkle.create($events, history, (_event, parent) => {
+  const _events = squash(events(data), head);
+  return merkle.create(_events, history, (_event, parent) => {
     return createCommit(
       timeline,
       _event.event,
@@ -24,7 +24,7 @@ export const commits = (
   });
 };
 
-const squash = (events: Event[], parent?: Commit): Event[] => {
+const squash = (_events: Event[], parent?: Commit): Event[] => {
   const isEqual = (a: Event | Commit, b: Event | Commit) => {
     return (
       a.event === b.event &&
@@ -33,7 +33,7 @@ const squash = (events: Event[], parent?: Commit): Event[] => {
     );
   };
   return _.reduce(
-    events,
+    _events,
     (acc: Event[], e: Event) => {
       const prev = _.last(acc);
       if (_.isEmpty(acc) && parent && isEqual(e, parent)) {

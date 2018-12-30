@@ -2,9 +2,9 @@
   "name": "changelog",
   "version": "1.0.0",
   "description": "Event sourced data store designed for auditing.",
+  "main": "./dist/src/changelog.js",
+  "types": "./dist/src/changelog.d.ts",
   "scripts": {
-    "start": "./node_modules/.bin/ts-node src/worker.ts",
-    "start-js": "node dist/src/worker.js",
     "build": "make",
     "test": "make test"
   },

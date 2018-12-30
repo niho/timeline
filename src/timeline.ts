@@ -2,14 +2,13 @@ import * as Bluebird from "bluebird";
 import * as _ from "lodash";
 import { commits, fetch } from "./changelog";
 import { Commit } from "./commit";
-import { Event } from "./event";
+import { Event, events } from "./event";
 import { Payload } from "./payload";
-import * as topic from "./topic";
 
 export type TimelineId = string;
 
-export function timeline(id: TimelineId, db: Datastore): Timeline {
-  return new Timeline(id, db);
+export function timeline(id: TimelineId, history: Commit[]): Timeline {
+  return new Timeline(id, history);
 }
 
 export type Validation = (
@@ -19,19 +18,14 @@ export type Validation = (
   thread: string | null
 ) => PromiseLike<any>;
 
-export interface Datastore {
-  fetch: (timeline: TimelineId) => PromiseLike<Commit[]>;
-  insert: (timeline: TimelineId, commits: Commit[]) => PromiseLike<Commit[]>;
-}
-
 class Timeline {
   private readonly id: TimelineId;
-  private readonly db: Datastore;
+  private readonly history: Commit[];
   private readonly validations: Validation[];
 
-  constructor(id: TimelineId, db: Datastore) {
+  constructor(id: TimelineId, history: Commit[]) {
     this.id = id;
-    this.db = db;
+    this.history = history;
     this.validations = [];
   }
 
@@ -40,19 +34,13 @@ class Timeline {
     return this;
   }
 
-  public async commit(
-    author: null | string,
-    events: Event[] | Event
-  ): Promise<Commit[]> {
-    const _events = events instanceof Array ? events : [events];
-    return this.fetch().then(history =>
-      Bluebird.reduce(_events, this.validation.bind(this), history)
-        .then(() =>
-          this.db.insert(this.id, commits(this.id, _events, history, author))
-        )
-        .tap(_commits => topic.publish(_commits))
-        .then(_commits => history.concat(_commits))
-    );
+  public async commit(author: null | string, data: unknown): Promise<Commit[]> {
+    const _events = events(data);
+    return Bluebird.reduce(
+      _events,
+      this.validation.bind(this),
+      this.history
+    ).then(() => commits(this.id, _events, this.history, author));
   }
 
   public async latest(_event: string): Promise<Payload | undefined> {
@@ -68,11 +56,9 @@ class Timeline {
 
   public async fetch(_event?: string): Promise<Commit[]> {
     if (_event) {
-      return this.db
-        .fetch(this.id)
-        .then(_commits => fetch(_commits, { event: _event }));
+      return fetch(this.history, { event: _event });
     } else {
-      return this.db.fetch(this.id).then(fetch);
+      return fetch(this.history);
     }
   }
 
