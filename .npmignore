@@ -1,0 +1,8 @@
+.gitignore
+tsconfig.json
+tslint.json
+Makefile
+/dist/test/
+/test/
+/src/
+*.tgz
