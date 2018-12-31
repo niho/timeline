@@ -8,6 +8,42 @@ A timeline is a logical sequence of `Commit` objects that are chained together i
 
 Commits are created from `Event` objects. Events are much simpler, only containing an event type, a payload and an optional thread id. Events can be grouped together in transactions. When you commit a group of events each event will be turned into a commit and added to the history. If any pre-condition fails no commits will be created.
 
+## Example usage
+
+```typescript
+import { Event, Commit, timeline } from "timeline";
+
+// Load the current history from a database.
+let history: Commit[] = [...];
+
+// You need to specify the author of the events.
+const author = "John Doe";
+
+// The list of events.
+const events: Event[] = [{
+  event: "example",
+  payload: "Hello world!",
+  thread: null
+}];
+
+// A validation function that can be used to check pre-conditions.
+// You can add any number of validation functions using the `validate()`
+// function on a timeline object.
+const isValidExampleEvent = (event, payload, history, thread) =>
+  event === "example" && typeof payload === "string" ?
+    Promise.resolve() :
+    Promise.reject();
+
+timeline("42", history)
+  .validate(isValidExampleEvent)
+  .commit(author, events)
+  .then((commits) => {
+    // We can now update the history with the new commits
+    // (or more likely, save them in a database).
+    history = history.concat(commits);
+  });
+```
+
 ## Data types
 
 ### Event
