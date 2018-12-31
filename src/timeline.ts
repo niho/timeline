@@ -1,6 +1,6 @@
 import * as Bluebird from "bluebird";
 import * as _ from "lodash";
-import { commits, fetch } from "./changelog";
+import { commits, fetch, verify } from "./changelog";
 import { Commit } from "./commit";
 import { Event, events } from "./event";
 import { Payload } from "./payload";
@@ -25,7 +25,7 @@ class Timeline {
 
   constructor(id: TimelineId, history: Commit[]) {
     this.id = id;
-    this.history = history;
+    this.history = verify(history);
     this.validations = [];
   }
 

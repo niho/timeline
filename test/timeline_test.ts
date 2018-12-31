@@ -74,32 +74,11 @@ describe("Timeline", () => {
           }));
 
       it("should preserve the logical order of commits in transaction", () =>
-        timeline("1", [
-          {
-            id: "xyz2",
-            parent: "xyz1",
-            thread: null,
-            timeline: "1",
-            event: "closed",
-            timestamp: new Date("2018-10-10").getTime(),
-            payload: null,
-            author: null
-          },
-          {
-            id: "xyz1",
-            parent: null,
-            thread: null,
-            timeline: "1",
-            event: "answer",
-            timestamp: new Date("2018-10-10").getTime(),
-            payload: null,
-            author: null
-          }
-        ])
-          .fetch()
+        timeline("1", [])
+          .commit(null, [event("answer", {}), event("closed", null)])
           .then(commits => {
-            commits[0].id.should.equal("xyz1");
-            commits[1].id.should.equal("xyz2");
+            commits[0].event.should.equal("answer");
+            commits[1].event.should.equal("closed");
           }));
 
       it("should chain commits in a transaction", () =>

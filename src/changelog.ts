@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-import { Commit, createCommit } from "./commit";
+import { Commit, createCommit, verifyCommit } from "./commit";
 import { Event, events } from "./event";
 import * as merkle from "./merkle";
 
@@ -56,3 +56,10 @@ export const fetch = (
   predicate
     ? _.filter(merkle.sort(_commits), predicate)
     : merkle.sort(_commits);
+
+export const verify = (_commits: Commit[]) =>
+  merkle.verify(_commits, verifyCommit) ? _commits : verifyFailed();
+
+const verifyFailed = () => {
+  throw new Error("integrity verification failed");
+};

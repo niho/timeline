@@ -34,4 +34,8 @@ const squash = (_events, parent) => {
 exports.fetch = (_commits, predicate) => predicate
     ? _.filter(merkle.sort(_commits), predicate)
     : merkle.sort(_commits);
+exports.verify = (_commits) => merkle.verify(_commits, commit_1.verifyCommit) ? _commits : verifyFailed();
+const verifyFailed = () => {
+    throw new Error("integrity verification failed");
+};
 //# sourceMappingURL=changelog.js.map

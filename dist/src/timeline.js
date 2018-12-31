@@ -19,7 +19,7 @@ exports.timeline = timeline;
 class Timeline {
     constructor(id, history) {
         this.id = id;
-        this.history = history;
+        this.history = changelog_1.verify(history);
         this.validations = [];
     }
     validate(func) {
