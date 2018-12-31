@@ -1,25 +1,14 @@
-# Changelog
+# Timeline
 
-Event sourced data store designed for auditing.
+An simple library for creating auditable Merkle trees of threaded events.
 
-## Services
+## How does it work?
 
-| Name               | Description                                  |
-| :----------------- | :------------------------------------------- |
-| `changelog.commit` | Commit one or multiple events on a timeline. |
-| `changelog.fetch`  | Fetch a list of commits on a timeline.       |
+A timeline is a logical sequence of `Commit` objects that are chained together in a Merkle chain, similar to how a Git repository works. A commit can optionally belong to a "thread" which is the id of a previous commit in the timeline. A thread is a conceptual grouping of multiple commits, yet the overall logical ordering of the chain is still linear. A timeline is in that sense a hybrid between a tree and a chain. It can be handled and presented as a tree, but it still remains a simple chain.
 
-#### Headers
+Commits are created from `Event` objects. Events are much simpler, only containing an event type, a payload and an optional thread id. Events can be grouped together in transactions. When you commit a group of events each event will be turned into a commit and added to the history. If any pre-condition fails no commits will be created.
 
-Both the commit and fetch service uses the `x-timeline` header to decide which timeline the request is intended for. The commit service also uses the `x-author` header to decide the author for the commit(s).
-
-## Topics
-
-| Exchange    | Description                                                                                             |
-| :---------- | :------------------------------------------------------------------------------------------------------ |
-| `changelog` | All newly created commits are published on this topic exchange with the timeline id as the routing key. |
-
-## Message format
+## Data types
 
 ### Event
 
@@ -41,15 +30,6 @@ Both the commit and fetch service uses the `x-timeline` header to decide which t
 | `payload`   | mixed  |   yes    | The payload of the event. Can be any valid JSON type (including `null`).                                                                        |
 | `thread`    | string |    no    | A commit id in the timeline that indicates the thread the event is associated with.                                                             |
 | `author`    | string |    no    | The author of the commit.                                                                                                                       |
-
-## Environment variables
-
-| Name                   | Format |               Default               | Description                          |
-| :--------------------- | :----: | :---------------------------------: | :----------------------------------- |
-| `AMQP_URL`             |  URL   | `amqp://guest:guest@localhost:5672` | Address to the AMQP broker.          |
-| `DATABASE_CLIENT`      | String |                `pg`                 | The database client to use.          |
-| `DATABASE_URL`         |  URL   |                 n/a                 | The connection URL for the database. |
-| `DATABASE_SEARCH_PATH` | String |                 n/a                 | The database schema to use.          |
 
 ## Getting started
 

@@ -87,7 +87,7 @@ describe("Changelog", () => {
           null
         );
         commits.length.should.equal(1);
-        commits[0].payload.reason.should.equal("two");
+        (commits[0].payload as any).reason.should.equal("two");
       });
 
       it("should squash with history if thread is the same", () => {
@@ -111,7 +111,7 @@ describe("Changelog", () => {
           null
         );
         commits.length.should.equal(1);
-        commits[0].payload.reason.should.equal("one");
+        (commits[0].payload as any).reason.should.equal("one");
         chai.should().equal(commits[0].thread, "thread-2");
       });
     });

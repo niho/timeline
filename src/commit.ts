@@ -1,29 +1,39 @@
 import * as crypto from "crypto";
+import * as t from "io-ts";
 import * as stringify from "json-stable-stringify";
+import { Payload } from "./payload";
 
 export interface Commit {
   timeline: string;
   id: string;
   parent: string | null;
   thread: string | null;
-  author: null | string;
+  author: string | null;
   event: string;
   timestamp: number;
-  payload: any;
+  payload: Payload;
 }
 
-const generateHash = (input: any) => {
-  return crypto
-    .createHash("sha1")
-    .update(stringify(input))
-    .digest("hex");
-};
+export const decoder = t.intersection([
+  t.type({
+    timeline: t.string,
+    id: t.string,
+    event: t.string,
+    timestamp: t.number,
+    payload: t.any
+  }),
+  t.partial({
+    parent: t.union([t.string, t.null]),
+    author: t.union([t.string, t.null]),
+    thread: t.union([t.string, t.null])
+  })
+]);
 
 export const createCommit = (
   timeline: string,
   event: string,
   timestamp: Date,
-  payload: any,
+  payload: Payload,
   parent: string | null,
   thread: string | null,
   author: string | null
@@ -71,15 +81,23 @@ export const createCommit = (
 
 export const verifyCommit = (commit: Commit): boolean => {
   return (
+    decoder.is(commit) &&
     commit.id ===
-    generateHash({
-      parent: commit.parent,
-      timeline: commit.timeline,
-      event: commit.event,
-      timestamp: commit.timestamp,
-      payload: commit.payload,
-      thread: commit.thread,
-      author: commit.author
-    })
+      generateHash({
+        parent: commit.parent,
+        timeline: commit.timeline,
+        event: commit.event,
+        timestamp: commit.timestamp,
+        payload: commit.payload,
+        thread: commit.thread,
+        author: commit.author
+      })
   );
+};
+
+const generateHash = (input: any) => {
+  return crypto
+    .createHash("sha1")
+    .update(stringify(input))
+    .digest("hex");
 };

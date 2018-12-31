@@ -5,6 +5,8 @@ export const decoder = t.union([
   t.number,
   t.boolean,
   t.object,
+  t.array(t.string),
+  t.array(t.number),
   t.null
 ]);
 

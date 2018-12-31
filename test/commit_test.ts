@@ -24,7 +24,7 @@ describe("Commit", () => {
       c.timeline.should.equal("123");
       c.event.should.equal("closed");
       c.timestamp.should.equal(date.getTime());
-      c.payload.should.deep.equal({});
+      (c.payload as any).should.deep.equal({});
     });
 
     it("should create a commit with a parent", () => {
@@ -43,7 +43,7 @@ describe("Commit", () => {
       c.timeline.should.equal("123");
       c.event.should.equal("closed");
       c.timestamp.should.equal(date.getTime());
-      c.payload.should.deep.equal({});
+      (c.payload as any).should.deep.equal({});
     });
 
     it("should create a commit with a thread", () => {
@@ -81,7 +81,15 @@ describe("Commit", () => {
 
     it("should not allow a commit without a payload", () => {
       chai.should().throw(() => {
-        commit.createCommit("123", "closed", date, undefined, null, null, null);
+        commit.createCommit(
+          "123",
+          "closed",
+          date,
+          undefined as any,
+          null,
+          null,
+          null
+        );
       }, Error);
     });
 
@@ -91,7 +99,7 @@ describe("Commit", () => {
           "123",
           "closed",
           date,
-          undefined,
+          {},
           undefined as any,
           null,
           null
@@ -105,7 +113,7 @@ describe("Commit", () => {
           "123",
           "closed",
           date,
-          undefined,
+          {},
           null,
           undefined as any,
           null
@@ -119,7 +127,7 @@ describe("Commit", () => {
           "123",
           "closed",
           date,
-          undefined,
+          {},
           null,
           null,
           undefined as any

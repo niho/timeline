@@ -1,32 +1,29 @@
 {
-  "name": "changelog",
+  "name": "timeline",
   "version": "1.0.0",
   "description": "Event sourced data store designed for auditing.",
-  "main": "./dist/src/changelog.js",
-  "types": "./dist/src/changelog.d.ts",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
   "scripts": {
     "build": "make",
     "test": "make test"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/insurello/changelog.git"
+    "url": "git+https://github.com/niho/timeline.git"
   },
-  "author": "Insurello AB",
-  "license": "UNLICENSED",
+  "author": "Niklas Holmgren",
+  "license": "MIT",
   "private": true,
   "bugs": {
-    "url": "https://github.com/insurello/changelog/issues"
+    "url": "https://github.com/niho/timeline/issues"
   },
-  "homepage": "https://github.com/insurello/changelog#readme",
+  "homepage": "https://github.com/niho/timeline#readme",
   "dependencies": {
-    "aws-sdk": "^2.382.0",
     "bluebird": "^3.5.3",
     "io-ts": "^1.4.0",
     "json-stable-stringify": "^1.0.1",
-    "lodash": "^4.17.11",
-    "rabbot": "^2.1.0",
-    "winston": "^3.1.0"
+    "lodash": "^4.17.11"
   },
   "devDependencies": {
     "@types/bluebird": "^3.5.24",
@@ -47,7 +44,6 @@
     "source-map-support": "^0.5.5",
     "ts-node": "^4.0.2",
     "tslint": "^5.9.1",
-    "tslint-insurello": "git+https://github.com/insurello/tslint-insurello.git",
     "typescript": "^3.0.1"
   },
   "nyc": {

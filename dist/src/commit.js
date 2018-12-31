@@ -1,13 +1,22 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const crypto = require("crypto");
+const t = require("io-ts");
 const stringify = require("json-stable-stringify");
-const generateHash = (input) => {
-    return crypto
-        .createHash("sha1")
-        .update(stringify(input))
-        .digest("hex");
-};
+exports.decoder = t.intersection([
+    t.type({
+        timeline: t.string,
+        id: t.string,
+        event: t.string,
+        timestamp: t.number,
+        payload: t.any
+    }),
+    t.partial({
+        parent: t.union([t.string, t.null]),
+        author: t.union([t.string, t.null]),
+        thread: t.union([t.string, t.null])
+    })
+]);
 exports.createCommit = (timeline, event, timestamp, payload, parent, thread, author) => {
     if (typeof timeline !== "string" || timeline === "") {
         throw new TypeError("Argument timeline expected to be a string.");
@@ -50,15 +59,22 @@ exports.createCommit = (timeline, event, timestamp, payload, parent, thread, aut
     };
 };
 exports.verifyCommit = (commit) => {
-    return (commit.id ===
-        generateHash({
-            parent: commit.parent,
-            timeline: commit.timeline,
-            event: commit.event,
-            timestamp: commit.timestamp,
-            payload: commit.payload,
-            thread: commit.thread,
-            author: commit.author
-        }));
+    return (exports.decoder.is(commit) &&
+        commit.id ===
+            generateHash({
+                parent: commit.parent,
+                timeline: commit.timeline,
+                event: commit.event,
+                timestamp: commit.timestamp,
+                payload: commit.payload,
+                thread: commit.thread,
+                author: commit.author
+            }));
+};
+const generateHash = (input) => {
+    return crypto
+        .createHash("sha1")
+        .update(stringify(input))
+        .digest("hex");
 };
 //# sourceMappingURL=commit.js.map
