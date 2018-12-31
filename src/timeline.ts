@@ -18,12 +18,15 @@ export type Validation = (
   thread: string | null
 ) => PromiseLike<any>;
 
-class Timeline {
+export class Timeline {
   private readonly id: TimelineId;
   private readonly history: Commit[];
   private readonly validations: Validation[];
 
   constructor(id: TimelineId, history: Commit[]) {
+    if (typeof id !== "string" || id === "") {
+      throw new TypeError("Argument id expected to be a string.");
+    }
     this.id = id;
     this.history = verify(history);
     this.validations = [];
@@ -43,20 +46,21 @@ class Timeline {
     ).then(() => commits(this.id, _events, this.history, author));
   }
 
-  public async latest(_event: string): Promise<Payload | undefined> {
-    return this.fetch(_event).then((_commits: Commit[]) => {
-      const commit = _.last(_commits);
-      return commit ? commit.payload : undefined;
-    });
+  public latest(event: string): Commit | undefined {
+    return _.last(fetch(this.history, { event }));
   }
 
-  public async all(_event: string): Promise<Payload[]> {
-    return this.fetch(_event).then(_commits => _.map(_commits, c => c.payload));
+  public thread(thread: string): Commit[] {
+    return fetch(this.history, { thread });
   }
 
-  public async fetch(_event?: string): Promise<Commit[]> {
-    if (_event) {
-      return fetch(this.history, { event: _event });
+  public author(author: string): Commit[] {
+    return fetch(this.history, { author });
+  }
+
+  public all(event?: string): Commit[] {
+    if (event) {
+      return fetch(this.history, { event });
     } else {
       return fetch(this.history);
     }

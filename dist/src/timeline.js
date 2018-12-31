@@ -18,6 +18,9 @@ function timeline(id, history) {
 exports.timeline = timeline;
 class Timeline {
     constructor(id, history) {
+        if (typeof id !== "string" || id === "") {
+            throw new TypeError("Argument id expected to be a string.");
+        }
         this.id = id;
         this.history = changelog_1.verify(history);
         this.validations = [];
@@ -32,28 +35,22 @@ class Timeline {
             return Bluebird.reduce(_events, this.validation.bind(this), this.history).then(() => changelog_1.commits(this.id, _events, this.history, author));
         });
     }
-    latest(_event) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return this.fetch(_event).then((_commits) => {
-                const commit = _.last(_commits);
-                return commit ? commit.payload : undefined;
-            });
-        });
+    latest(event) {
+        return _.last(changelog_1.fetch(this.history, { event }));
     }
-    all(_event) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return this.fetch(_event).then(_commits => _.map(_commits, c => c.payload));
-        });
+    thread(thread) {
+        return changelog_1.fetch(this.history, { thread });
     }
-    fetch(_event) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (_event) {
-                return changelog_1.fetch(this.history, { event: _event });
-            }
-            else {
-                return changelog_1.fetch(this.history);
-            }
-        });
+    author(author) {
+        return changelog_1.fetch(this.history, { author });
+    }
+    all(event) {
+        if (event) {
+            return changelog_1.fetch(this.history, { event });
+        }
+        else {
+            return changelog_1.fetch(this.history);
+        }
     }
     validation(history, e) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -62,4 +59,5 @@ class Timeline {
         });
     }
 }
+exports.Timeline = Timeline;
 //# sourceMappingURL=timeline.js.map

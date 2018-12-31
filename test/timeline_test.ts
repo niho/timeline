@@ -5,7 +5,7 @@ import * as chai from "chai";
 import * as chaiAsPromised from "chai-as-promised";
 import * as changelog from "../src/changelog";
 import { Event } from "../src/event";
-import { timeline } from "../src/timeline";
+import { Timeline, timeline } from "../src/timeline";
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -17,6 +17,30 @@ const event = (name: string, payload: any, thread: string | null = null) => ({
 });
 
 describe("Timeline", () => {
+  describe("timeline()", () => {
+    describe("a timeline with a valid id", () => {
+      it("should return a Timeline object", () =>
+        timeline("1", []).should.be.instanceof(Timeline));
+    });
+
+    describe("a timeline with an invalid id", () => {
+      describe("an empty string", () => {
+        it("should throw an exception", () => {
+          chai.should().throw(() => {
+            timeline("", []);
+          }, Error);
+        });
+      });
+      describe("a number", () => {
+        it("should throw an exception", () => {
+          chai.should().throw(() => {
+            timeline(1 as any, []);
+          }, Error);
+        });
+      });
+    });
+  });
+
   describe("commit()", () => {
     it("should commit events to the changelog", () =>
       timeline("1", [])
@@ -53,7 +77,7 @@ describe("Timeline", () => {
           commits.length.should.equal(0);
         }));
 
-    it("should return the the new commits", () =>
+    it("should return the new commits", () =>
       timeline("1", changelog.commits("1", [event("question", null)], [], null))
         .commit(null, [event("answer", {}), event("closed", null)])
         .then(commits => {
@@ -225,52 +249,81 @@ describe("Timeline", () => {
       changelog.commits(
         "1",
         [
-          event("rejected", { reason: "one" }),
-          event("rejected", { reason: "two" }),
-          event("rejected", { reason: "three" })
+          event("one", {}),
+          event("two", {}, "thread1"),
+          event("three", {}, "thread2"),
+          event("three", {}, "thread1")
         ],
         [],
-        null
+        "user1"
       )
     );
 
-    describe("fetch()", () => {
-      it("should fetch all commits in logically sorted order", () =>
-        _timeline.fetch().then(commits => {
-          commits.length.should.equal(3);
-          commits[0].payload.reason.should.equal("one");
-          commits[1].payload.reason.should.equal("two");
-          commits[2].payload.reason.should.equal("three");
-        }));
+    describe("all()", () => {
+      it("should fetch all commits in logically sorted order", () => {
+        const commits = _timeline.all();
+        commits.length.should.equal(4);
+        commits[0].event.should.equal("one");
+        commits[1].event.should.equal("two");
+        commits[2].event.should.equal("three");
+        commits[3].event.should.equal("three");
+      });
+
+      it("should fetch all events of the specified type", () => {
+        const commits = _timeline.all("two");
+        commits.length.should.equal(1);
+        commits[0].event.should.equal("two");
+      });
+
+      it("should return [] if there are no events of the type", () => {
+        const commits = _timeline.all("wrong");
+        commits.length.should.equal(0);
+      });
     });
 
     describe("latest()", () => {
-      it("should fetch the latest payload of the specified event type", () =>
-        _timeline.latest("rejected").then((payload: any) => {
-          payload.should.be.a("object");
-          payload.reason.should.equal("three");
-        }));
+      it("should fetch latest event of the specified type", () => {
+        const commit = _timeline.latest("three");
+        if (commit) {
+          commit.event.should.equal("three");
+        } else {
+          chai.should().not.equal(commit, undefined);
+        }
+      });
 
-      it("should resolve with undefined if there are no events of type", () =>
-        _timeline.latest("closed").then(payload => {
-          chai.should().equal(payload, undefined);
-        }));
+      it("should return undefined if there are no events of the type", () => {
+        chai.should().equal(_timeline.latest("wrong"), undefined);
+      });
     });
 
-    describe("all()", () => {
-      it("should fetch all events of the specified type", () =>
-        _timeline.all("rejected").then((payloads: any[]) => {
-          payloads.should.be.a("array");
-          payloads.length.should.equal(3);
-          payloads[0].should.be.a("object");
-          payloads[0].reason.should.equal("one");
-        }));
+    describe("thread()", () => {
+      it("should fetch all events on the specified thread", () => {
+        const commits = _timeline.thread("thread1");
+        commits.length.should.equal(2);
+        chai.should().equal(commits[0].thread, "thread1");
+        chai.should().equal(commits[1].thread, "thread1");
+      });
 
-      it("should resolve with [] if there are no events of the type", () =>
-        _timeline.all("closed").then(payloads => {
-          payloads.should.be.a("array");
-          payloads.length.should.equal(0);
-        }));
+      it("should return [] if there are no events on the thread", () => {
+        const commits = _timeline.thread("wrong");
+        commits.length.should.equal(0);
+      });
+    });
+
+    describe("author()", () => {
+      it("should fetch all events by the specified author", () => {
+        const commits = _timeline.author("user1");
+        commits.length.should.equal(4);
+        chai.should().equal(commits[0].author, "user1");
+        chai.should().equal(commits[1].author, "user1");
+        chai.should().equal(commits[2].author, "user1");
+        chai.should().equal(commits[3].author, "user1");
+      });
+
+      it("should return [] if there are no events by the author", () => {
+        const commits = _timeline.author("wrong");
+        commits.length.should.equal(0);
+      });
     });
   });
 });
