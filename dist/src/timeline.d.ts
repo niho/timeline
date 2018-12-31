@@ -1,9 +1,8 @@
 import { Commit } from "./commit";
 import { Event } from "./event";
-import { Payload } from "./payload";
 export declare type TimelineId = string;
 export declare function timeline(id: TimelineId, history: Commit[]): Timeline;
-export declare type Validation = (event: string, payload: Payload, history: Array<Commit | Event>, thread: string | null) => PromiseLike<any>;
+export declare type Validation = (event: Event, history: Array<Commit | Event>) => PromiseLike<any>;
 export declare class Timeline {
     private readonly id;
     private readonly history;

@@ -3,7 +3,6 @@ import * as _ from "lodash";
 import { commits, fetch, verify } from "./changelog";
 import { Commit } from "./commit";
 import { Event, events } from "./event";
-import { Payload } from "./payload";
 
 export type TimelineId = string;
 
@@ -12,10 +11,8 @@ export function timeline(id: TimelineId, history: Commit[]): Timeline {
 }
 
 export type Validation = (
-  event: string,
-  payload: Payload,
-  history: Array<Commit | Event>,
-  thread: string | null
+  event: Event,
+  history: Array<Commit | Event>
 ) => PromiseLike<any>;
 
 export class Timeline {
@@ -68,11 +65,11 @@ export class Timeline {
 
   private async validation(
     history: Array<Commit | Event>,
-    e: Event
+    event: Event
   ): Promise<Array<Commit | Event>> {
-    const params = [e.event, e.payload, history, e.thread];
+    const params = [event, history];
     return Bluebird.map(this.validations, f => _.spread(f)(params)).then(() =>
-      _.concat(history, e)
+      _.concat(history, event)
     );
   }
 }

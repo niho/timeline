@@ -29,8 +29,8 @@ const events: Event[] = [{
 // A validation function that can be used to check pre-conditions.
 // You can add any number of validation functions using the `validate()`
 // function on a timeline object.
-const isValidExampleEvent = (event, payload, history, thread) =>
-  event === "example" && typeof payload === "string" ?
+const isValidExampleEvent = (event, history) =>
+  event.event === "example" && typeof event.payload === "string" ?
     Promise.resolve() :
     Promise.reject();
 

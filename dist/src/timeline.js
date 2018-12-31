@@ -52,10 +52,10 @@ class Timeline {
             return changelog_1.fetch(this.history);
         }
     }
-    validation(history, e) {
+    validation(history, event) {
         return __awaiter(this, void 0, void 0, function* () {
-            const params = [e.event, e.payload, history, e.thread];
-            return Bluebird.map(this.validations, f => _.spread(f)(params)).then(() => _.concat(history, e));
+            const params = [event, history];
+            return Bluebird.map(this.validations, f => _.spread(f)(params)).then(() => _.concat(history, event));
         });
     }
 }

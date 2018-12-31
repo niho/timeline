@@ -151,7 +151,7 @@ describe("Timeline", () => {
   describe("validate()", () => {
     it("should validate events before they are comitted", () =>
       timeline("1", [])
-        .validate((_event, _payload) => Promise.resolve())
+        .validate((_event, _history) => Promise.resolve())
         .commit(null, [
           event("rejected", { reason: "..." }),
           event("closed", null)
@@ -159,7 +159,7 @@ describe("Timeline", () => {
 
     it("should *not* reject events if validation resolves with false", () =>
       timeline("1", [])
-        .validate((_event, _payload) => Promise.resolve(false))
+        .validate((_event, _history) => Promise.resolve(false))
         .commit(null, [
           event("rejected", { reason: "..." }),
           event("closed", null)
@@ -167,7 +167,7 @@ describe("Timeline", () => {
 
     it("should reject events if validation is rejected with error", () =>
       timeline("1", [])
-        .validate((_event, _payload) => {
+        .validate((_event, _history) => {
           return Promise.reject(new Error("TestError"));
         })
         .commit(null, [
@@ -178,7 +178,7 @@ describe("Timeline", () => {
 
     it("should propagate errors thrown during validation", () =>
       timeline("1", [])
-        .validate((_event, _payload) => {
+        .validate((_event, _history) => {
           throw new Error("TestError");
         })
         .commit(null, [
@@ -189,8 +189,8 @@ describe("Timeline", () => {
 
     it("should validate all events individually", () =>
       timeline("1", [])
-        .validate((_event, payload) => {
-          if (_event === "closed" && payload === null) {
+        .validate((_event, _history) => {
+          if (_event.event === "closed" && _event.payload === null) {
             return Promise.reject("ValidationError");
           } else {
             return Promise.resolve();
@@ -204,7 +204,7 @@ describe("Timeline", () => {
 
     it("should be able to validate asynchronously", () =>
       timeline("1", [])
-        .validate((_event, _payload) =>
+        .validate((_event, _history) =>
           Promise.resolve("TestError").then(result => {
             throw new Error(result);
           })
@@ -225,15 +225,15 @@ describe("Timeline", () => {
           null
         )
       )
-        .validate((_event, _payload, history) => {
+        .validate((_event, history) => {
           history.should.be.a("array");
-          if (_event === "reopened") {
+          if (_event.event === "reopened") {
             history.length.should.equal(2);
             history[0].event.should.equal("rejected");
             history[1].event.should.equal("closed");
             chai.should().not.equal(history[0].payload, undefined);
             chai.should().not.equal(history[1].payload, undefined);
-          } else if (_event === "accident") {
+          } else if (_event.event === "accident") {
             history.length.should.equal(3);
             history[2].event.should.equal("reopened");
             chai.should().not.equal(history[2].payload, undefined);
