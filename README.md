@@ -60,8 +60,8 @@ timeline("42", history)
 | :---------- | :----: | :------: | :---------------------------------------------------------------------------------------------------------------------------------------------- |
 | `id`        | string |   yes    | The commit id (globally unique).                                                                                                                |
 | `parent`    | string |    no    | The id of the previous commit in the timeline according to a logical ordering. If the commit is the first in the timeline this value is `null`. |
-| `timestamp` | string |   yes    | The point in time the commit was created.                                                                                                       |
-| `timeline`  | number |   yes    | The timeline id.                                                                                                                                |
+| `timestamp` | number |   yes    | The point in time the commit was created.                                                                                                       |
+| `timeline`  | string |   yes    | The timeline id.                                                                                                                                |
 | `event`     | string |   yes    | The name of the event.                                                                                                                          |
 | `payload`   | mixed  |   yes    | The payload of the event. Can be any valid JSON type (including `null`).                                                                        |
 | `thread`    | string |    no    | A commit id in the timeline that indicates the thread the event is associated with.                                                             |
