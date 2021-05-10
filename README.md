@@ -1,6 +1,6 @@
 # Timeline
 
-An simple library for creating auditable Merkle trees of threaded events.
+A simple library for creating auditable Merkle trees of threaded events.
 
 ## How does it work?
 
